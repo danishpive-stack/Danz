@@ -1,0 +1,127 @@
+import { useState, useEffect } from "react"
+
+export default function DanishbotChat() { const savedMessages = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('danishbot_chats') || 'null') : null
+
+const [messages, setMessages] = useState(savedMessages || [ { text: "Halo 👋 Selamat datang di Danishbot!", sender: "bot" }, { text: "Kamu bisa chat bebas dan privat di sini.", sender: "bot" }, ])
+
+const [input, setInput] = useState("") const [image, setImage] = useState(null)
+
+const botReply = (msg) => { const text = msg.toLowerCase()
+
+if (text.includes("halo") || text.includes("hai")) {
+  return "Halo juga 👋 Ada yang bisa Danishbot bantu?"
+}
+
+if (text.includes("siapa kamu")) {
+  return "Aku Danishbot, AI chatbot privat buatan kamu 😎"
+}
+
+if (text.includes("terima kasih")) {
+  return "Sama-sama 😊"
+}
+
+return "Menarik 👀 Ceritakan lebih lanjut ya."
+
+}
+
+const handleImage = (e) => { const file = e.target.files[0]
+
+if (file) {
+  const reader = new FileReader()
+  reader.onloadend = () => {
+    setImage(reader.result)
+  }
+  reader.readAsDataURL(file)
+}
+
+}
+
+useEffect(() => { localStorage.setItem('danishbot_chats', JSON.stringify(messages)) }, [messages])
+
+const clearChats = () => { localStorage.removeItem('danishbot_chats') setMessages([]) }
+
+const sendMessage = () => { if (!input.trim() && !image) return
+
+const userMessage = {
+  text: input,
+  image: image,
+  sender: "user"
+}
+const reply = { text: botReply(input), sender: "bot" }
+
+setMessages((prev) => [...prev, userMessage, reply])
+setInput("")
+setImage(null)
+
+}
+
+return ( <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black text-white flex items-center justify-center p-6"> <div className="w-full max-w-4xl bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-700"> <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-700"> <div> <h1 className="text-2xl font-bold">Danishbot</h1> <p className="text-sm text-slate-400">Private Chat Website</p> </div> <div className="flex gap-2 items-center"> <button
+onClick={clearChats}
+className="bg-red-500 hover:bg-red-400 text-white text-sm px-3 py-1 rounded-full font-semibold"
+> Hapus Chat </button>
+
+<div className="bg-green-500 text-black text-sm px-3 py-1 rounded-full font-semibold">
+          Online
+        </div>
+      </div>
+    </div>
+
+    <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-slate-850">
+      {messages.map((msg, index) => (
+        <div
+          key={index}
+          className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`${msg.sender === "user"
+              ? "bg-blue-600"
+              : "bg-slate-700"
+              } px-4 py-3 rounded-2xl max-w-xs`}
+          >
+            <div>
+              {msg.text && <p>{msg.text}</p>}
+
+              {msg.image && (
+                <img
+                  src={msg.image}
+                  alt="upload"
+                  className="mt-2 rounded-xl max-w-full"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="border-t border-slate-700 p-4 flex gap-3 bg-slate-900">
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        placeholder="Tulis pesan..."
+        className="flex-1 bg-slate-800 border border-slate-600 rounded-2xl px-4 py-3 outline-none focus:border-blue-500"
+      />
+
+      <label className="bg-slate-700 hover:bg-slate-600 transition px-4 py-3 rounded-2xl cursor-pointer">
+        📷
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImage}
+          className="hidden"
+        />
+      </label>
+
+      <button
+        onClick={sendMessage}
+        className="bg-blue-600 hover:bg-blue-500 transition px-6 py-3 rounded-2xl font-semibold"
+      >
+        Kirim
+      </button>
+    </div>
+  </div>
+</div>
+
+) }
